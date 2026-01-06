@@ -167,8 +167,38 @@ class UnauthenticatedMovieApiTests(TestCase):
     def setUp(self):
         self.client = APIClient()
 
-    def test_auth_required(self):
+    def test_list_auth_required(self):
         res = self.client.get(MOVIE_URL)
+        self.assertEqual(res.status_code, status.HTTP_401_UNAUTHORIZED)
+
+    def test_retrieve_auth_required(self):
+        movie = sample_movie()
+        url = detail_url(movie.id)
+
+        res = self.client.get(url)
+        self.assertEqual(res.status_code, status.HTTP_401_UNAUTHORIZED)
+
+    def test_create_auth_required(self):
+        payload = {
+            "title": "Test Movie",
+            "description": "Test description",
+            "duration": 90,
+        }
+
+        res = self.client.post(MOVIE_URL, payload)
+        self.assertEqual(res.status_code, status.HTTP_401_UNAUTHORIZED)
+
+    def test_upload_image_auth_required(self):
+        movie = sample_movie()
+        url = image_upload_url(movie.id)
+
+        with tempfile.NamedTemporaryFile(suffix=".jpg") as ntf:
+            img = Image.new("RGB", (10, 10))
+            img.save(ntf, format="JPEG")
+            ntf.seek(0)
+
+            res = self.client.post(url, {"image": ntf}, format="multipart")
+
         self.assertEqual(res.status_code, status.HTTP_401_UNAUTHORIZED)
 
 
